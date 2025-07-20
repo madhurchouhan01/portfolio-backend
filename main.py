@@ -2,21 +2,30 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import requests
 import os
+import random
 from dotenv import load_dotenv
+
 load_dotenv()
+
 app = FastAPI()
 
-# Allow frontend from GitHub Pages
+# CORS for frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # For production: use specific domain
+    allow_origins=["*"],  # Change to specific domain in production
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-print(GROQ_API_KEY)
+
+TOPICS = [
+    "programming", "AI", "machine learning", "deep learning", "quantum computing",
+    "blockchain", "cybersecurity", "robotics", "computer vision", "natural language processing",
+    "data science", "programming languages", "history of computing", "futuristic tech"
+]
+
 @app.get("/")
 def read_root():
     return {"message": "Groq FastAPI Proxy is live"}
@@ -28,19 +37,26 @@ def get_fun_fact():
         "Authorization": f"Bearer {GROQ_API_KEY}"
     }
 
+    topic = random.choice(TOPICS)
+    dynamic_prompt = (
+        f"Give me a unique and lesser-known fun fact related to {topic}. "
+        "Make sure it's surprising, educational, and under 50 words. "
+        "Avoid repeating common trivia. Be specific if possible."
+    )
+
     payload = {
         "model": "meta-llama/llama-4-scout-17b-16e-instruct",
         "messages": [
             {
                 "role": "system",
-                "content": "You are a helpful assistant who shares short, fun, and surprising facts about programming or technology."
+                "content": "You are a creative and fun assistant who shares surprising, unique, and specific short tech facts."
             },
             {
                 "role": "user",
-                "content": "Give me one fun fact about programming or technology. Keep it under 50 words."
+                "content": dynamic_prompt
             }
         ],
-        "temperature": 0.8,
+        "temperature": 0.9,
         "max_tokens": 100
     }
 
