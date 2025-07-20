@@ -2,7 +2,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import requests
 import os
-
+from dotenv import load_dotenv
+load_dotenv()
 app = FastAPI()
 
 # Allow frontend from GitHub Pages
@@ -15,7 +16,7 @@ app.add_middleware(
 )
 
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-
+print(GROQ_API_KEY)
 @app.get("/")
 def read_root():
     return {"message": "Groq FastAPI Proxy is live"}
