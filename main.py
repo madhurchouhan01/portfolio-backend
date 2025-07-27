@@ -60,9 +60,10 @@ def get_fun_fact():
 @app.post("/ask")
 async def ask(request: Request):
     body = await request.json()
-    question = body.get("question")
+    message = body.get("message")
+    history = body.get('history')
 
-    retrieved_context = retrieve_chunks(question)
+    retrieved_context = retrieve_chunks(message)
     print("🔍 Retrieved Chunks:")
     for c in retrieved_context:
         print("-", c)
@@ -74,7 +75,8 @@ async def ask(request: Request):
         Context:
         {chr(10).join(retrieved_context)}
 
-        Question: {question}
+        message: {message}
+        history : {history}
         Answer:"""
 
     response = model.generate_content(prompt)
