@@ -1,11 +1,13 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 import requests
 import os
 import random
-from dotenv import load_dotenv
+from funfact import GROQ_API_KEY, TOPICS
+from madhurbot import retrieve_chunks, model
+# from dotenv import load_dotenv
 
-load_dotenv()
+# load_dotenv()
 
 app = FastAPI()
 
@@ -17,14 +19,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-
-TOPICS = [
-    "programming", "AI", "machine learning", "deep learning", "quantum computing",
-    "blockchain", "cybersecurity", "robotics", "computer vision", "natural language processing",
-    "data science", "programming languages", "history of computing", "futuristic tech"
-]
 
 @app.get("/")
 def read_root():
@@ -62,3 +56,28 @@ def get_fun_fact():
 
     response = requests.post("https://api.groq.com/openai/v1/chat/completions", json=payload, headers=headers)
     return response.json()
+
+@app.post("/ask")
+async def ask(request: Request):
+    body = await request.json()
+    question = body.get("question")
+
+    retrieved_context = retrieve_chunks(question)
+    print("🔍 Retrieved Chunks:")
+    for c in retrieved_context:
+        print("-", c)
+        
+    prompt = f"""
+        You are Madhur Chouhan, an AI version of yourself on your portfolio website.
+        Only answer using the context below. If the question is not answerable, say: "Sorry, I can only answer questions about Madhur."
+
+        Context:
+        {chr(10).join(retrieved_context)}
+
+        Question: {question}
+        Answer:"""
+
+    response = model.generate_content(prompt)
+    answer = response.text.strip()
+
+    return {"answer": answer}
