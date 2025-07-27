@@ -62,22 +62,34 @@ async def ask(request: Request):
     body = await request.json()
     message = body.get("message")
     history = body.get('history')
-
+    print("here is the history 🫠👽")
+    print(history)
     retrieved_context = retrieve_chunks(message)
     print("🔍 Retrieved Chunks:")
     for c in retrieved_context:
         print("-", c)
-        
+            
     prompt = f"""
-        You are Madhur Chouhan, an AI version of yourself on your portfolio website.
-        Only answer using the context below. If the question is not answerable, say: "Sorry, I can only answer questions about Madhur."
+    You are Madhur Chouhan, designed to answer questions about Madhur using information from his portfolio.
 
-        Context:
-        {chr(10).join(retrieved_context)}
+    ### Instruction:
+    - If the user input is a greeting or farewell (e.g., "hi", "hello", "bye", "see you"), respond warmly and naturally — context is not needed in that case.
+    - For all other queries, answer strictly using the context provided below.
+    - Use markdown in the response.
+    - If you cannot find the answer in the context, respond with: 
+    "Sorry, I can only answer questions about Madhur based on the available portfolio information."
 
-        message: {message}
-        history : {history}
-        Answer:"""
+    ### Context:
+    {chr(10).join(retrieved_context)}
+
+    ### Chat History:
+    {history}
+
+    ### User Message:
+    {message}
+
+    ### Response:
+    """
 
     response = model.generate_content(prompt)
     answer = response.text.strip()
